@@ -15,59 +15,36 @@ const constructorSlice = createSlice({
   name: 'constructor',
   initialState,
   reducers: {
-    addIngredient: (state, action: PayloadAction<TConstructorIngredient>) => {
-      // Убеждаемся, что state.ingredients всегда существует
-      if (!Array.isArray(state.ingredients)) {
-        console.warn('state.ingredients is not an array, initializing...');
-        state.ingredients = [];
-      }
-
-      if (action.payload.type === 'bun') {
-        state.bun = action.payload;
-      } else {
-        state.ingredients.push(action.payload);
-      }
-    },
-    removeIngredient: (state, action: PayloadAction<string>) => {
-      // Убеждаемся, что state.ingredients всегда существует
-      if (!Array.isArray(state.ingredients)) {
-        console.warn(
-          'state.ingredients is not an array in removeIngredient, initializing...'
-        );
-        state.ingredients = [];
-      } else {
-        state.ingredients = state.ingredients.filter(
-          (ingredient) => ingredient.id !== action.payload
-        );
-      }
-    },
-    moveIngredient: (
-      state,
-      action: PayloadAction<{ dragIndex: number; hoverIndex: number }>
-    ) => {
-      // Убеждаемся, что state.ingredients всегда существует
-      if (!Array.isArray(state.ingredients)) {
-        console.warn(
-          'state.ingredients is not an array in moveIngredient, initializing...'
-        );
-        state.ingredients = [];
-      } else {
-        const { dragIndex, hoverIndex } = action.payload;
-
-        // Проверяем валидность индексов
-        if (
-          dragIndex >= 0 &&
-          dragIndex < state.ingredients.length &&
-          hoverIndex >= 0 &&
-          hoverIndex < state.ingredients.length
-        ) {
-          const draggedIngredient = state.ingredients[dragIndex];
-          state.ingredients.splice(dragIndex, 1);
-          state.ingredients.splice(hoverIndex, 0, draggedIngredient);
+    addIngredient: {
+      reducer(
+        state: ConstructorState,
+        action: PayloadAction<TConstructorIngredient>
+      ) {
+        if (action.payload.type === 'bun') {
+          state.bun = action.payload;
+        } else {
+          state.ingredients.push(action.payload);
         }
+      },
+      prepare(ingredient: TConstructorIngredient) {
+        return { payload: ingredient };
       }
     },
-    clearConstructor: (state) => {
+    removeIngredient(state: ConstructorState, action: PayloadAction<string>) {
+      state.ingredients = state.ingredients.filter(
+        (ingredient) => ingredient.id !== action.payload
+      );
+    },
+    moveIngredient(
+      state: ConstructorState,
+      action: PayloadAction<{ dragIndex: number; hoverIndex: number }>
+    ) {
+      const { dragIndex, hoverIndex } = action.payload;
+      const draggedIngredient = state.ingredients[dragIndex];
+      state.ingredients.splice(dragIndex, 1);
+      state.ingredients.splice(hoverIndex, 0, draggedIngredient);
+    },
+    clearConstructor(state: ConstructorState) {
       state.bun = null;
       state.ingredients = [];
     }

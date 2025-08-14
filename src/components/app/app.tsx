@@ -14,7 +14,8 @@ import {
   ModalRoute,
   OrderInfo,
   IngredientDetails,
-  ProtectedRoute
+  ProtectedRoute,
+  AuthRoute
 } from '@components';
 import '../../index.css';
 import styles from './app.module.css';
@@ -27,10 +28,38 @@ const App = () => (
       <Routes>
         <Route path='/' element={<ConstructorPage />} />
         <Route path='/feed' element={<Feed />} />
-        <Route path='/login' element={<Login />} />
-        <Route path='/register' element={<Register />} />
-        <Route path='/forgot-password' element={<ForgotPassword />} />
-        <Route path='/reset-password' element={<ResetPassword />} />
+        <Route
+          path='/login'
+          element={
+            <AuthRoute>
+              <Login />
+            </AuthRoute>
+          }
+        />
+        <Route
+          path='/register'
+          element={
+            <AuthRoute>
+              <Register />
+            </AuthRoute>
+          }
+        />
+        <Route
+          path='/forgot-password'
+          element={
+            <AuthRoute>
+              <ForgotPassword />
+            </AuthRoute>
+          }
+        />
+        <Route
+          path='/reset-password'
+          element={
+            <AuthRoute>
+              <ResetPassword />
+            </AuthRoute>
+          }
+        />
         <Route
           path='/profile'
           element={

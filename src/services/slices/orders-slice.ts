@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { TOrder, TOrdersData } from '../../utils/types';
+import { TOrder } from '../../utils/types';
 import {
   getFeedsApi,
   getOrdersApi,
@@ -43,18 +43,18 @@ export const fetchUserOrders = createAsyncThunk(
   }
 );
 
-export const createOrder = createAsyncThunk(
-  'orders/createOrder',
-  async (ingredients: string[]) => {
-    const response = await orderBurgerApi(ingredients);
-    return response;
-  }
-);
-
 export const fetchOrderByNumber = createAsyncThunk(
   'orders/fetchOrderByNumber',
   async (number: number) => {
     const response = await getOrderByNumberApi(number);
+    return response;
+  }
+);
+
+export const createOrder = createAsyncThunk(
+  'orders/createOrder',
+  async (ingredients: string[]) => {
+    const response = await orderBurgerApi(ingredients);
     return response;
   }
 );
@@ -105,7 +105,11 @@ const ordersSlice = createSlice({
       })
       .addCase(createOrder.fulfilled, (state, action) => {
         state.loading = false;
-        state.currentOrder = action.payload.order;
+        if (action.payload.order && action.payload.order.number) {
+          state.currentOrder = action.payload.order;
+        } else {
+          state.error = 'Некорректные данные заказа';
+        }
       })
       .addCase(createOrder.rejected, (state, action) => {
         state.loading = false;
@@ -118,7 +122,7 @@ const ordersSlice = createSlice({
       })
       .addCase(fetchOrderByNumber.fulfilled, (state, action) => {
         state.loading = false;
-        state.currentOrder = action.payload.orders[0];
+        state.currentOrder = action.payload.orders[0] || null;
       })
       .addCase(fetchOrderByNumber.rejected, (state, action) => {
         state.loading = false;

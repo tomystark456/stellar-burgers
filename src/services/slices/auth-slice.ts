@@ -9,6 +9,7 @@ import {
   TRegisterData,
   TLoginData
 } from '../../utils/burger-api';
+import { setCookie, deleteCookie } from '../../utils/cookie';
 
 export interface AuthState {
   user: TUser | null;
@@ -74,6 +75,13 @@ const authSlice = createSlice({
       })
       .addCase(registerUser.fulfilled, (state, action) => {
         state.loading = false;
+        // Сохраняем токены
+        if (action.payload.accessToken) {
+          setCookie('accessToken', action.payload.accessToken);
+        }
+        if (action.payload.refreshToken) {
+          localStorage.setItem('refreshToken', action.payload.refreshToken);
+        }
         state.user = action.payload.user;
         state.isAuthenticated = true;
       })
@@ -88,6 +96,13 @@ const authSlice = createSlice({
       })
       .addCase(loginUser.fulfilled, (state, action) => {
         state.loading = false;
+        // Сохраняем токены
+        if (action.payload.accessToken) {
+          setCookie('accessToken', action.payload.accessToken);
+        }
+        if (action.payload.refreshToken) {
+          localStorage.setItem('refreshToken', action.payload.refreshToken);
+        }
         state.user = action.payload.user;
         state.isAuthenticated = true;
       })
@@ -105,7 +120,7 @@ const authSlice = createSlice({
         state.user = action.payload.user;
         state.isAuthenticated = true;
       })
-      .addCase(getUser.rejected, (state, action) => {
+      .addCase(getUser.rejected, (state) => {
         state.loading = false;
         state.isAuthenticated = false;
         state.user = null;
@@ -130,6 +145,9 @@ const authSlice = createSlice({
       })
       .addCase(logoutUser.fulfilled, (state) => {
         state.loading = false;
+        // Очищаем токены
+        deleteCookie('accessToken');
+        localStorage.removeItem('refreshToken');
         state.user = null;
         state.isAuthenticated = false;
       })

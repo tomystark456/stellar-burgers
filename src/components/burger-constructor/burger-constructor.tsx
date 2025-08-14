@@ -1,16 +1,24 @@
-import { FC, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { FC, useMemo, useEffect, useState } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useSelector, useDispatch } from '../../services/store';
-import { createOrder } from '../../services/slices/orders-slice';
+import {
+  createOrder,
+  clearCurrentOrder
+} from '../../services/slices/orders-slice';
+import { clearConstructor } from '../../services/slices/constructor-slice';
 import { TConstructorIngredient } from '@utils-types';
 import { BurgerConstructorUI } from '@ui';
+import { Modal } from '../modal';
+import { OrderDetailsUI } from '../ui/order-details';
 
 export const BurgerConstructor: FC = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
   const { bun, ingredients } = useSelector((state) => state.constructor);
-  const { loading } = useSelector((state) => state.orders);
+  const { loading, currentOrder, error } = useSelector((state) => state.orders);
   const { isAuthenticated } = useSelector((state) => state.auth);
+  const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
 
   const constructorItems = {
     bun,
@@ -19,13 +27,41 @@ export const BurgerConstructor: FC = () => {
 
   const orderRequest = loading;
 
-  const orderModalData = null; // TODO: добавить модальное окно заказа
+  useEffect(() => {
+    if (error) {
+      setIsOrderModalOpen(false);
+      dispatch(clearCurrentOrder());
+    }
+  }, [error, dispatch]);
+
+  useEffect(() => {
+    if (currentOrder && currentOrder.number && !isOrderModalOpen) {
+      setIsOrderModalOpen(true);
+    }
+  }, [currentOrder, isOrderModalOpen]);
+
+  const handleCloseOrderModal = () => {
+    setIsOrderModalOpen(false);
+    dispatch(clearCurrentOrder());
+    dispatch(clearConstructor());
+    navigate(-1);
+  };
 
   const onOrderClick = () => {
-    if (!constructorItems.bun || orderRequest) return;
+    if (!constructorItems.bun || orderRequest) {
+      return;
+    }
 
     if (!isAuthenticated) {
       navigate('/login');
+      return;
+    }
+
+    if (
+      !constructorItems.bun._id ||
+      !constructorItems.ingredients.every((ing) => ing._id)
+    ) {
+      console.error('Invalid ingredients data:', constructorItems);
       return;
     }
 
@@ -36,10 +72,6 @@ export const BurgerConstructor: FC = () => {
     ];
 
     dispatch(createOrder(ingredientIds) as any);
-  };
-
-  const closeOrderModal = () => {
-    // TODO: закрыть модальное окно заказа
   };
 
   const price = useMemo(() => {
@@ -54,13 +86,18 @@ export const BurgerConstructor: FC = () => {
   }, [constructorItems]);
 
   return (
-    <BurgerConstructorUI
-      price={price}
-      orderRequest={orderRequest}
-      constructorItems={constructorItems}
-      orderModalData={orderModalData}
-      onOrderClick={onOrderClick}
-      closeOrderModal={closeOrderModal}
-    />
+    <>
+      <BurgerConstructorUI
+        price={price}
+        orderRequest={orderRequest}
+        constructorItems={constructorItems}
+        onOrderClick={onOrderClick}
+      />
+      {isOrderModalOpen && currentOrder && (
+        <Modal title='' onClose={handleCloseOrderModal}>
+          <OrderDetailsUI orderNumber={currentOrder.number} />
+        </Modal>
+      )}
+    </>
   );
 };

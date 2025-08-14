@@ -2,7 +2,7 @@ import type { StorybookConfig } from '@storybook/react-webpack5';
 import path from 'path';
 
 const config: StorybookConfig = {
-  stories: ['../src/**/*.mdx', '../src/**/*.stories.@(js|jsx|mjs|ts|tsx)'],
+  stories: ['../src/**/*.mdx', '../src/**/*.stories.@(js|jsx|ts|tsx)'],
   addons: [
     '@storybook/addon-links',
     '@storybook/addon-essentials',
@@ -10,19 +10,32 @@ const config: StorybookConfig = {
     '@storybook/addon-interactions'
   ],
   webpackFinal: async (config) => {
-    config.resolve
-      ? (config.resolve.alias = {
-          ...config.resolve.alias,
-          '@pages': path.resolve(__dirname, '../src/pages'),
-          '@components': path.resolve(__dirname, '../src/components'),
-          '@ui': path.resolve(__dirname, '../src/components/ui'),
-          '@ui-pages': path.resolve(__dirname, '../src/components/ui/pages'),
-          '@utils-types': path.resolve(__dirname, '../src/utils/types'),
-          '@api': path.resolve(__dirname, '../src/utils/burger-api.ts'),
-          '@slices': path.resolve(__dirname, '../src/services/slices'),
-          '@selectors': path.resolve(__dirname, '../src/services/selectors')
-        })
-      : null;
+    if (config.resolve) {
+      config.resolve.alias = {
+        ...config.resolve.alias,
+        '@pages': path.resolve(__dirname, '../src/pages'),
+        '@components': path.resolve(__dirname, '../src/components'),
+        '@ui': path.resolve(__dirname, '../src/components/ui'),
+        '@ui-pages': path.resolve(__dirname, '../src/components/ui/pages'),
+        '@utils-types': path.resolve(__dirname, '../src/utils/types'),
+        '@api': path.resolve(__dirname, '../src/utils/burger-api.ts'),
+        '@slices': path.resolve(__dirname, '../src/services/slices'),
+        '@selectors': path.resolve(__dirname, '../src/services/selectors')
+      };
+
+      // Убедимся, что .tsx файлы обрабатываются перед .ts
+      if (config.resolve.extensions) {
+        config.resolve.extensions = [
+          '.tsx',
+          '.ts',
+          '.js',
+          '.jsx',
+          ...config.resolve.extensions.filter(
+            ext => !['.tsx', '.ts', '.js', '.jsx'].includes(ext)
+          )
+        ];
+      }
+    }
     return config;
   },
   framework: {
