@@ -24,13 +24,54 @@ import {
   ProtectedRoute,
   AuthRoute
 } from '@components';
+import { useEffect } from 'react';
+import { useDispatch, useSelector } from '../../services/store';
+import { getUser } from '../../services/slices/auth-slice';
+import { fetchIngredients } from '../../services/slices/ingredients-slice';
+import { getCookie } from '../../utils/cookie';
+import { Preloader } from '@ui';
 import '../../index.css';
 import styles from './app.module.css';
 import { AppHeader } from '@components';
 
 const App = () => {
+  const dispatch = useDispatch();
   const location = useLocation();
   const background = location.state?.background;
+  
+  const { loading: authLoading } = useSelector((state) => state.auth);
+  const { ingredients, loading: ingredientsLoading } = useSelector(
+    (state) => state.ingredients
+  );
+
+  useEffect(() => {
+    // Проверяем наличие токенов и загружаем данные пользователя
+    const accessToken = getCookie('accessToken');
+    const refreshToken = localStorage.getItem('refreshToken');
+    
+    if (accessToken && refreshToken) {
+      dispatch(getUser());
+    }
+  }, [dispatch]);
+
+  useEffect(() => {
+    // Загружаем ингредиенты, если их еще нет
+    if (ingredients.length === 0) {
+      dispatch(fetchIngredients());
+    }
+  }, [dispatch, ingredients.length]);
+
+  // Показываем прелоадер, пока загружаются критически важные данные
+  if (authLoading || ingredientsLoading) {
+    return (
+      <div className={styles.app}>
+        <AppHeader />
+        <main className={styles.main}>
+          <Preloader />
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.app}>
