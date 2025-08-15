@@ -6,10 +6,11 @@ import {
   getUserApi,
   updateUserApi,
   logoutApi,
+  refreshToken,
   TRegisterData,
   TLoginData
 } from '../../utils/burger-api';
-import { setCookie, deleteCookie } from '../../utils/cookie';
+import { setCookie, deleteCookie, getCookie } from '../../utils/cookie';
 
 export interface AuthState {
   user: TUser | null;
@@ -41,14 +42,33 @@ export const loginUser = createAsyncThunk(
   }
 );
 
-export const getUser = createAsyncThunk('auth/getUser', async () => {
-  const response = await getUserApi();
-  return response;
-});
+export const getUser = createAsyncThunk(
+  'auth/getUser',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await getUserApi();
+      return response;
+    } catch (error) {
+      const refreshTokenValue = localStorage.getItem('refreshToken');
+      if (refreshTokenValue) {
+        try {
+          const refreshResponse = await refreshToken();
+          const response = await getUserApi();
+          return response;
+        } catch (refreshError) {
+          deleteCookie('accessToken');
+          localStorage.removeItem('refreshToken');
+          return rejectWithValue('Ошибка авторизации');
+        }
+      }
+      return rejectWithValue('Ошибка авторизации');
+    }
+  }
+);
 
 export const updateUser = createAsyncThunk(
   'auth/updateUser',
-  async (data: Partial<TRegisterData>) => {
+  async (data: Partial<TUser>) => {
     const response = await updateUserApi(data);
     return response;
   }
@@ -75,7 +95,6 @@ const authSlice = createSlice({
       })
       .addCase(registerUser.fulfilled, (state, action) => {
         state.loading = false;
-        // Сохраняем токены
         if (action.payload.accessToken) {
           setCookie('accessToken', action.payload.accessToken);
         }
@@ -96,7 +115,6 @@ const authSlice = createSlice({
       })
       .addCase(loginUser.fulfilled, (state, action) => {
         state.loading = false;
-        // Сохраняем токены
         if (action.payload.accessToken) {
           setCookie('accessToken', action.payload.accessToken);
         }
@@ -120,10 +138,12 @@ const authSlice = createSlice({
         state.user = action.payload.user;
         state.isAuthenticated = true;
       })
-      .addCase(getUser.rejected, (state) => {
+      .addCase(getUser.rejected, (state, action) => {
         state.loading = false;
         state.isAuthenticated = false;
         state.user = null;
+        state.error =
+          (action.payload as string) || 'Ошибка получения данных пользователя';
       })
       // Update User
       .addCase(updateUser.pending, (state) => {
@@ -145,7 +165,6 @@ const authSlice = createSlice({
       })
       .addCase(logoutUser.fulfilled, (state) => {
         state.loading = false;
-        // Очищаем токены
         deleteCookie('accessToken');
         localStorage.removeItem('refreshToken');
         state.user = null;

@@ -26,7 +26,6 @@ export const BurgerIngredient: FC<TBurgerIngredientProps> = memo(
 
         dispatch(addIngredient(constructorIngredient));
       } catch (error) {
-        // В production можно добавить сервис для обработки ошибок
         if (process.env.NODE_ENV !== 'production') {
           console.error('Error in handleAdd:', error);
         }

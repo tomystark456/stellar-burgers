@@ -5,6 +5,7 @@ import {
   fetchOrderByNumber,
   clearCurrentOrder
 } from '../../services/slices/orders-slice';
+import { fetchIngredients } from '../../services/slices/ingredients-slice';
 import { Preloader } from '../ui/preloader';
 import { OrderInfoUI } from '../ui/order-info';
 import { TIngredient } from '@utils-types';
@@ -14,11 +15,22 @@ export const OrderInfo: FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { number } = useParams<{ number: string }>();
-  const { currentOrder, loading, error } = useSelector((state) => state.orders);
-  const { ingredients } = useSelector((state) => state.ingredients);
+  const {
+    currentOrder,
+    loading: orderLoading,
+    error
+  } = useSelector((state) => state.orders);
+  const { ingredients, loading: ingredientsLoading } = useSelector(
+    (state) => state.ingredients
+  );
 
   useEffect(() => {
-    // Загружаем заказ только если его нет или номер не совпадает
+    if (ingredients.length === 0) {
+      dispatch(fetchIngredients());
+    }
+  }, [dispatch, ingredients.length]);
+
+  useEffect(() => {
     if (number && (!currentOrder || currentOrder.number !== parseInt(number))) {
       dispatch(fetchOrderByNumber(parseInt(number)));
     }
@@ -27,7 +39,6 @@ export const OrderInfo: FC = () => {
   useEffect(() => {
     if (error) {
       dispatch(clearCurrentOrder());
-      // Если есть background, значит мы в модальном окне и нужно вернуться назад
       if (location.state?.background) {
         navigate(-1);
       } else {
@@ -36,7 +47,6 @@ export const OrderInfo: FC = () => {
     }
   }, [error, navigate, location.state, dispatch]);
 
-  /* Готовим данные для отображения */
   const orderInfo = useMemo(() => {
     if (!currentOrder || !ingredients.length) return null;
     if (!currentOrder.ingredients || !Array.isArray(currentOrder.ingredients)) {
@@ -51,7 +61,6 @@ export const OrderInfo: FC = () => {
     };
 
     try {
-      // Создаем объект с информацией об ингредиентах и их количестве
       const ingredientsInfo = currentOrder.ingredients.reduce(
         (acc: TIngredientsWithCount, item) => {
           if (!acc[item]) {
@@ -70,17 +79,6 @@ export const OrderInfo: FC = () => {
         {}
       );
 
-      // Проверяем, что все ингредиенты найдены
-      if (
-        Object.keys(ingredientsInfo).length !== currentOrder.ingredients.length
-      ) {
-        console.error('Some ingredients not found:', {
-          orderIngredients: currentOrder.ingredients,
-          foundIngredients: Object.keys(ingredientsInfo)
-        });
-      }
-
-      // Подсчитываем общую стоимость
       const total = Object.values(ingredientsInfo).reduce(
         (acc, item) => acc + item.price * item.count,
         0
@@ -98,13 +96,20 @@ export const OrderInfo: FC = () => {
     }
   }, [currentOrder, ingredients]);
 
-  if (loading) {
+  if (orderLoading || ingredientsLoading) {
     return <Preloader />;
   }
 
   if (!orderInfo) {
-    return <Preloader />;
+    return null;
   }
 
-  return <OrderInfoUI orderInfo={orderInfo} />;
+  return (
+    <>
+      <h2 className='text text_type_digits-default mb-10'>
+        #{String(orderInfo.number).padStart(6, '0')}
+      </h2>
+      <OrderInfoUI orderInfo={orderInfo} />
+    </>
+  );
 };

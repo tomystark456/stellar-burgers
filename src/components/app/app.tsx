@@ -1,4 +1,9 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  useLocation
+} from 'react-router-dom';
 import {
   ConstructorPage,
   Feed,
@@ -8,7 +13,9 @@ import {
   ResetPassword,
   Profile,
   ProfileOrders,
-  NotFound404
+  NotFound404,
+  IngredientPage,
+  OrderPage
 } from '@pages';
 import {
   ModalRoute,
@@ -21,11 +28,14 @@ import '../../index.css';
 import styles from './app.module.css';
 import { AppHeader } from '@components';
 
-const App = () => (
-  <Router>
+const App = () => {
+  const location = useLocation();
+  const background = location.state?.background;
+
+  return (
     <div className={styles.app}>
       <AppHeader />
-      <Routes>
+      <Routes location={background || location}>
         <Route path='/' element={<ConstructorPage />} />
         <Route path='/feed' element={<Feed />} />
         <Route
@@ -61,7 +71,7 @@ const App = () => (
           }
         />
         <Route
-          path='/profile'
+          path='/profile/*'
           element={
             <ProtectedRoute>
               <Profile />
@@ -76,36 +86,57 @@ const App = () => (
             </ProtectedRoute>
           }
         />
-        <Route
-          path='/feed/:number'
-          element={
-            <ModalRoute title='Детали заказа'>
-              <OrderInfo />
-            </ModalRoute>
-          }
-        />
-        <Route
-          path='/ingredients/:id'
-          element={
-            <ModalRoute title='Детали ингредиента'>
-              <IngredientDetails />
-            </ModalRoute>
-          }
-        />
+        <Route path='/feed/:number' element={<Feed />} />
+        <Route path='/ingredients/:id' element={<IngredientPage />} />
         <Route
           path='/profile/orders/:number'
           element={
             <ProtectedRoute>
-              <ModalRoute title='Детали заказа'>
-                <OrderInfo />
-              </ModalRoute>
+              <Feed />
             </ProtectedRoute>
           }
         />
         <Route path='*' element={<NotFound404 />} />
       </Routes>
+
+      {background && (
+        <Routes>
+          <Route
+            path='/feed/:number'
+            element={
+              <ModalRoute title=''>
+                <OrderInfo />
+              </ModalRoute>
+            }
+          />
+          <Route
+            path='/ingredients/:id'
+            element={
+              <ModalRoute title='Детали ингредиента'>
+                <IngredientDetails />
+              </ModalRoute>
+            }
+          />
+          <Route
+            path='/profile/orders/:number'
+            element={
+              <ProtectedRoute>
+                <ModalRoute title=''>
+                  <OrderInfo />
+                </ModalRoute>
+              </ProtectedRoute>
+            }
+          />
+        </Routes>
+      )}
     </div>
+  );
+};
+
+const WrappedApp = () => (
+  <Router>
+    <App />
   </Router>
 );
 
-export default App;
+export default WrappedApp;

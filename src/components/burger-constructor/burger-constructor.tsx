@@ -37,13 +37,14 @@ export const BurgerConstructor: FC = () => {
   useEffect(() => {
     if (currentOrder && currentOrder.number && !isOrderModalOpen) {
       setIsOrderModalOpen(true);
+      // Очищаем конструктор сразу после успешного создания заказа
+      dispatch(clearConstructor());
     }
-  }, [currentOrder, isOrderModalOpen]);
+  }, [currentOrder, isOrderModalOpen, dispatch]);
 
   const handleCloseOrderModal = () => {
     setIsOrderModalOpen(false);
     dispatch(clearCurrentOrder());
-    dispatch(clearConstructor());
     navigate(-1);
   };
 

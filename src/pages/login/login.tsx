@@ -1,5 +1,5 @@
 import { FC, SyntheticEvent, useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useSelector, useDispatch } from '../../services/store';
 import { loginUser, clearError } from '../../services/slices/auth-slice';
 import { LoginUI } from '@ui-pages';
@@ -7,6 +7,7 @@ import { LoginUI } from '@ui-pages';
 export const Login: FC = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
   const { isAuthenticated, error, loading } = useSelector(
     (state) => state.auth
   );
@@ -16,9 +17,11 @@ export const Login: FC = () => {
 
   useEffect(() => {
     if (isAuthenticated) {
-      navigate('/');
+      // Если есть сохраненный маршрут, перенаправляем на него
+      const from = location.state?.from?.pathname || '/';
+      navigate(from, { replace: true });
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, navigate, location]);
 
   const handleSubmit = (e: SyntheticEvent) => {
     e.preventDefault();
