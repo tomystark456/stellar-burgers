@@ -26,9 +26,7 @@ import {
 } from '@components';
 import { useEffect } from 'react';
 import { useDispatch, useSelector } from '../../services/store';
-import { getUser } from '../../services/slices/auth-slice';
 import { fetchIngredients } from '../../services/slices/ingredients-slice';
-import { getCookie } from '../../utils/cookie';
 import { Preloader } from '@ui';
 import '../../index.css';
 import styles from './app.module.css';
@@ -38,28 +36,18 @@ const App = () => {
   const dispatch = useDispatch();
   const location = useLocation();
   const background = location.state?.background;
-  
+
   const { loading: authLoading } = useSelector((state) => state.auth);
   const { ingredients, loading: ingredientsLoading } = useSelector(
     (state) => state.ingredients
   );
 
   useEffect(() => {
-    // Проверяем наличие токенов и загружаем данные пользователя
-    const accessToken = getCookie('accessToken');
-    const refreshToken = localStorage.getItem('refreshToken');
-    
-    if (accessToken && refreshToken) {
-      dispatch(getUser());
-    }
-  }, [dispatch]);
-
-  useEffect(() => {
     // Загружаем ингредиенты, если их еще нет
     if (ingredients.length === 0) {
       dispatch(fetchIngredients());
     }
-  }, [dispatch, ingredients.length]);
+  }, []); // Убираем все зависимости, чтобы загрузить только один раз
 
   // Показываем прелоадер, пока загружаются критически важные данные
   if (authLoading || ingredientsLoading) {
@@ -127,13 +115,13 @@ const App = () => {
             </ProtectedRoute>
           }
         />
-        <Route path='/feed/:number' element={<Feed />} />
+        <Route path='/feed/:number' element={<OrderPage />} />
         <Route path='/ingredients/:id' element={<IngredientPage />} />
         <Route
           path='/profile/orders/:number'
           element={
             <ProtectedRoute>
-              <Feed />
+              <OrderPage />
             </ProtectedRoute>
           }
         />

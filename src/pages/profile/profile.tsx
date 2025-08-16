@@ -5,7 +5,7 @@ import { getUser, updateUser } from '../../services/slices/auth-slice';
 
 export const Profile: FC = () => {
   const dispatch = useDispatch();
-  const { user, loading } = useSelector((state) => state.auth);
+  const { user, loading, error } = useSelector((state) => state.auth);
 
   const [formValue, setFormValue] = useState({
     name: '',
@@ -14,18 +14,30 @@ export const Profile: FC = () => {
   });
 
   useEffect(() => {
-    dispatch(getUser());
-  }, [dispatch]);
+    // Проверяем, есть ли уже пользователь и токен
+    const accessToken = document.cookie.includes('accessToken');
+    if (!user && accessToken && !loading) {
+      dispatch(getUser());
+    }
+  }, []); // Убираем все зависимости, чтобы загрузить только один раз
 
+  // Добавляем дополнительную проверку для предотвращения повторных запросов
   useEffect(() => {
-    if (user) {
+    if (user && !loading) {
       setFormValue((prevState) => ({
         ...prevState,
         name: user.name || '',
         email: user.email || ''
       }));
     }
-  }, [user]);
+  }, [user, loading]);
+
+  // Обработка ошибок
+  useEffect(() => {
+    if (error) {
+      console.error('Auth error:', error);
+    }
+  }, [error]);
 
   const isFormChanged =
     formValue.name !== user?.name ||
@@ -61,6 +73,17 @@ export const Profile: FC = () => {
 
   if (loading) {
     return <div>Загрузка...</div>;
+  }
+
+  if (error) {
+    return (
+      <div>
+        <p>Ошибка: {error}</p>
+        <button onClick={() => window.location.reload()}>
+          Обновить страницу
+        </button>
+      </div>
+    );
   }
 
   return (

@@ -28,13 +28,13 @@ export const OrderInfo: FC = () => {
     if (ingredients.length === 0) {
       dispatch(fetchIngredients());
     }
-  }, [dispatch, ingredients.length]);
+  }, []); // Убираем все зависимости, чтобы загрузить только один раз
 
   useEffect(() => {
     if (number && (!currentOrder || currentOrder.number !== parseInt(number))) {
       dispatch(fetchOrderByNumber(parseInt(number)));
     }
-  }, [dispatch, number, currentOrder]);
+  }, [number, currentOrder]); // Убираем dispatch из зависимостей
 
   useEffect(() => {
     if (error) {
@@ -45,7 +45,7 @@ export const OrderInfo: FC = () => {
         navigate('/');
       }
     }
-  }, [error, navigate, location.state, dispatch]);
+  }, [error, navigate, location.state]); // Убираем dispatch из зависимостей
 
   const orderInfo = useMemo(() => {
     if (!currentOrder || !ingredients.length) return null;

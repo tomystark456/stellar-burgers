@@ -52,7 +52,7 @@ export const getUser = createAsyncThunk(
       const refreshTokenValue = localStorage.getItem('refreshToken');
       if (refreshTokenValue) {
         try {
-          const refreshResponse = await refreshToken();
+          await refreshToken();
           const response = await getUserApi();
           return response;
         } catch (refreshError) {
@@ -137,6 +137,7 @@ const authSlice = createSlice({
         state.loading = false;
         state.user = action.payload.user;
         state.isAuthenticated = true;
+        state.error = null;
       })
       .addCase(getUser.rejected, (state, action) => {
         state.loading = false;

@@ -65,9 +65,9 @@ export const WithBunOnly: Story = {
 
 export const WithIngredients: Story = {
   args: {
-    constructorItems: { 
-      bun: mockBun, 
-      ingredients: [mockIngredient, mockIngredient] 
+    constructorItems: {
+      bun: mockBun,
+      ingredients: [mockIngredient, mockIngredient]
     },
     orderRequest: false,
     price: mockBun.price * 2 + mockIngredient.price * 2,
@@ -82,4 +82,4 @@ export const Loading: Story = {
     price: mockBun.price * 2,
     onOrderClick: () => console.log('Order clicked')
   }
-}; 
+};
