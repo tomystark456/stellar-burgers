@@ -3,7 +3,7 @@ import { rootReducer } from './index';
 describe('rootReducer', () => {
   test('should return initial state', () => {
     const initialState = rootReducer(undefined, { type: '@@INIT' });
-    
+
     expect(initialState).toMatchObject({
       ingredients: {
         ingredients: [],
@@ -26,17 +26,20 @@ describe('rootReducer', () => {
         error: null
       }
     });
-    
+
     // Проверим constructor отдельно, так как он может быть функцией из-за preloadedState
-    expect(typeof initialState.constructor === 'object' || typeof initialState.constructor === 'function').toBe(true);
+    expect(
+      typeof initialState.constructor === 'object' ||
+        typeof initialState.constructor === 'function'
+    ).toBe(true);
   });
 
   test('should have all required reducers', () => {
     const state = rootReducer(undefined, { type: '@@INIT' });
-    
+
     expect(state).toHaveProperty('ingredients');
-    expect(state).toHaveProperty('orders'); 
+    expect(state).toHaveProperty('orders');
     expect(state).toHaveProperty('auth');
     expect(state).toHaveProperty('constructor');
   });
-}); 
+});

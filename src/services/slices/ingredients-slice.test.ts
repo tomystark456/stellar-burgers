@@ -1,14 +1,9 @@
 import ingredientsReducer, {
   fetchIngredients,
-  IngredientsState
+  IngredientsState,
+  initialState
 } from './ingredients-slice';
 import { TIngredient } from '../../utils/types';
-
-const initialState: IngredientsState = {
-  ingredients: [],
-  loading: false,
-  error: null
-};
 
 const mockIngredients: TIngredient[] = [
   {
@@ -59,7 +54,7 @@ describe('ingredients reducer', () => {
         ...initialState,
         error: 'Previous error'
       };
-      
+
       const action = { type: fetchIngredients.pending.type };
       const state = ingredientsReducer(stateWithError, action);
 
@@ -73,7 +68,7 @@ describe('ingredients reducer', () => {
         ...initialState,
         loading: true
       };
-      
+
       const action = {
         type: fetchIngredients.fulfilled.type,
         payload: mockIngredients
@@ -90,7 +85,7 @@ describe('ingredients reducer', () => {
         ...initialState,
         loading: true
       };
-      
+
       const action = {
         type: fetchIngredients.fulfilled.type,
         payload: []
@@ -107,7 +102,7 @@ describe('ingredients reducer', () => {
         ...initialState,
         loading: true
       };
-      
+
       const action = {
         type: fetchIngredients.rejected.type,
         error: { message: 'Network error' }
@@ -124,7 +119,7 @@ describe('ingredients reducer', () => {
         ...initialState,
         loading: true
       };
-      
+
       const action = {
         type: fetchIngredients.rejected.type,
         error: {}
@@ -142,7 +137,7 @@ describe('ingredients reducer', () => {
         loading: true,
         ingredients: mockIngredients
       };
-      
+
       const action = {
         type: fetchIngredients.rejected.type,
         error: { message: 'Network error' }
@@ -192,4 +187,4 @@ describe('ingredients reducer', () => {
       expect(state.ingredients).toEqual([]);
     });
   });
-}); 
+});

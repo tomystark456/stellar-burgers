@@ -13,20 +13,23 @@ jest.mock('react-intersection-observer', () => ({
 jest.mock('../../utils/burger-api', () => ({
   getIngredientsApi: jest.fn(() => Promise.resolve([])),
   getUserApi: jest.fn(() => Promise.resolve({ user: null })),
-  refreshToken: jest.fn(() => Promise.resolve()),
+  refreshToken: jest.fn(() => Promise.resolve())
 }));
 
 describe('App', () => {
   // Подавляем предупреждения в консоли для чистого вывода тестов
   const originalError = console.error;
   const originalWarn = console.warn;
-  
+
   beforeAll(() => {
     console.error = jest.fn();
     console.warn = jest.fn((message) => {
       // Пропускаем только React Router Future Flag предупреждения
-      if (message && typeof message === 'string' && 
-          message.includes('React Router Future Flag Warning')) {
+      if (
+        message &&
+        typeof message === 'string' &&
+        message.includes('React Router Future Flag Warning')
+      ) {
         return;
       }
       originalWarn(message);
@@ -45,7 +48,12 @@ describe('App', () => {
       preloadedState: {
         constructor: { bun: null, ingredients: [] },
         ingredients: { ingredients: [], loading: false, error: null },
-        auth: { user: null, isAuthenticated: false, loading: false, error: null },
+        auth: {
+          user: null,
+          isAuthenticated: false,
+          loading: false,
+          error: null
+        },
         orders: {
           feedOrders: [],
           userOrders: [],
@@ -58,11 +66,11 @@ describe('App', () => {
       }
     });
 
-         const { container } = render(
-       <Provider store={testStore}>
-         <App />
-       </Provider>
-     );
+    const { container } = render(
+      <Provider store={testStore}>
+        <App />
+      </Provider>
+    );
 
     // Проверяем, что приложение отрендерилось
     expect(container.firstChild).toBeTruthy();

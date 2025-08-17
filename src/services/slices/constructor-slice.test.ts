@@ -3,14 +3,10 @@ import constructorReducer, {
   removeIngredient,
   moveIngredient,
   clearConstructor,
-  ConstructorState
+  ConstructorState,
+  initialState
 } from './constructor-slice';
 import { TConstructorIngredient } from '../../utils/types';
-
-const initialState: ConstructorState = {
-  bun: null,
-  ingredients: []
-};
 
 const mockBun: TConstructorIngredient = {
   _id: '60666c42cc7b410027a1a9b1',
@@ -44,7 +40,7 @@ const mockIngredient: TConstructorIngredient = {
 
 const mockSauce: TConstructorIngredient = {
   _id: '60666c42cc7b410027a1a9b6',
-  id: 'sauce-1', 
+  id: 'sauce-1',
   name: 'Биокотлета из марсианской Магнолии',
   type: 'sauce',
   proteins: 420,
@@ -66,7 +62,7 @@ describe('constructor reducer', () => {
     test('should add bun to constructor', () => {
       const action = addIngredient(mockBun);
       const state = constructorReducer(initialState, action);
-      
+
       expect(state.bun).toEqual(mockBun);
       expect(state.ingredients).toEqual([]);
     });
@@ -74,17 +70,17 @@ describe('constructor reducer', () => {
     test('should replace bun if already exists', () => {
       const stateWithBun = { ...initialState, bun: mockBun };
       const newBun = { ...mockBun, id: 'bun-2', name: 'Новая булка' };
-      
+
       const action = addIngredient(newBun);
       const state = constructorReducer(stateWithBun, action);
-      
+
       expect(state.bun).toEqual(newBun);
     });
 
     test('should add ingredient to ingredients array', () => {
       const action = addIngredient(mockIngredient);
       const state = constructorReducer(initialState, action);
-      
+
       expect(state.bun).toBeNull();
       expect(state.ingredients).toEqual([mockIngredient]);
     });
@@ -92,15 +88,18 @@ describe('constructor reducer', () => {
     test('should add sauce to ingredients array', () => {
       const action = addIngredient(mockSauce);
       const state = constructorReducer(initialState, action);
-      
+
       expect(state.bun).toBeNull();
       expect(state.ingredients).toEqual([mockSauce]);
     });
 
     test('should add multiple ingredients', () => {
-      let state = constructorReducer(initialState, addIngredient(mockIngredient));
+      let state = constructorReducer(
+        initialState,
+        addIngredient(mockIngredient)
+      );
       state = constructorReducer(state, addIngredient(mockSauce));
-      
+
       expect(state.ingredients).toEqual([mockIngredient, mockSauce]);
     });
   });
@@ -111,10 +110,10 @@ describe('constructor reducer', () => {
         ...initialState,
         ingredients: [mockIngredient, mockSauce]
       };
-      
+
       const action = removeIngredient('ingredient-1');
       const state = constructorReducer(stateWithIngredients, action);
-      
+
       expect(state.ingredients).toEqual([mockSauce]);
     });
 
@@ -123,17 +122,17 @@ describe('constructor reducer', () => {
         ...initialState,
         ingredients: [mockIngredient]
       };
-      
+
       const action = removeIngredient('nonexistent-id');
       const state = constructorReducer(stateWithIngredients, action);
-      
+
       expect(state.ingredients).toEqual([mockIngredient]);
     });
 
     test('should handle empty ingredients array', () => {
       const action = removeIngredient('any-id');
       const state = constructorReducer(initialState, action);
-      
+
       expect(state.ingredients).toEqual([]);
     });
   });
@@ -141,18 +140,26 @@ describe('constructor reducer', () => {
   describe('moveIngredient', () => {
     const ingredient1 = { ...mockIngredient, id: 'ing-1' };
     const ingredient2 = { ...mockSauce, id: 'ing-2' };
-    const ingredient3 = { ...mockIngredient, id: 'ing-3', name: 'Ingredient 3' };
+    const ingredient3 = {
+      ...mockIngredient,
+      id: 'ing-3',
+      name: 'Ingredient 3'
+    };
 
     test('should move ingredient from one position to another', () => {
       const stateWithIngredients = {
         ...initialState,
         ingredients: [ingredient1, ingredient2, ingredient3]
       };
-      
+
       const action = moveIngredient({ dragIndex: 0, hoverIndex: 2 });
       const state = constructorReducer(stateWithIngredients, action);
-      
-      expect(state.ingredients).toEqual([ingredient2, ingredient3, ingredient1]);
+
+      expect(state.ingredients).toEqual([
+        ingredient2,
+        ingredient3,
+        ingredient1
+      ]);
     });
 
     test('should move ingredient forward in array', () => {
@@ -160,11 +167,15 @@ describe('constructor reducer', () => {
         ...initialState,
         ingredients: [ingredient1, ingredient2, ingredient3]
       };
-      
+
       const action = moveIngredient({ dragIndex: 2, hoverIndex: 0 });
       const state = constructorReducer(stateWithIngredients, action);
-      
-      expect(state.ingredients).toEqual([ingredient3, ingredient1, ingredient2]);
+
+      expect(state.ingredients).toEqual([
+        ingredient3,
+        ingredient1,
+        ingredient2
+      ]);
     });
 
     test('should handle same position move', () => {
@@ -172,10 +183,10 @@ describe('constructor reducer', () => {
         ...initialState,
         ingredients: [ingredient1, ingredient2]
       };
-      
+
       const action = moveIngredient({ dragIndex: 1, hoverIndex: 1 });
       const state = constructorReducer(stateWithIngredients, action);
-      
+
       expect(state.ingredients).toEqual([ingredient1, ingredient2]);
     });
   });
@@ -186,18 +197,18 @@ describe('constructor reducer', () => {
         bun: mockBun,
         ingredients: [mockIngredient, mockSauce]
       };
-      
+
       const action = clearConstructor();
       const state = constructorReducer(stateWithData, action);
-      
+
       expect(state).toEqual(initialState);
     });
 
     test('should clear already empty constructor', () => {
       const action = clearConstructor();
       const state = constructorReducer(initialState, action);
-      
+
       expect(state).toEqual(initialState);
     });
   });
-}); 
+});

@@ -8,10 +8,13 @@
 // https://on.cypress.io/custom-commands
 // ***********************************************
 
+// Import selectors
+import { SELECTORS } from './selectors';
+
 // Custom command to intercept ingredients API
 Cypress.Commands.add('mockIngredientsApi', () => {
   cy.fixture('ingredients').then((ingredients) => {
-    cy.intercept('GET', 'https://norma.nomoreparties.space/api/ingredients', {
+    cy.intercept('GET', 'api/ingredients', {
       statusCode: 200,
       body: {
         success: true,
@@ -24,7 +27,7 @@ Cypress.Commands.add('mockIngredientsApi', () => {
 // Custom command to mock user data
 Cypress.Commands.add('mockUserApi', () => {
   cy.fixture('user').then((user) => {
-    cy.intercept('GET', 'https://norma.nomoreparties.space/api/auth/user', {
+    cy.intercept('GET', 'api/auth/user', {
       statusCode: 200,
       body: {
         success: true,
@@ -37,7 +40,7 @@ Cypress.Commands.add('mockUserApi', () => {
 // Custom command to mock order creation
 Cypress.Commands.add('mockCreateOrderApi', () => {
   cy.fixture('order').then((orderData) => {
-    cy.intercept('POST', 'https://norma.nomoreparties.space/api/orders', {
+    cy.intercept('POST', 'api/orders', {
       statusCode: 200,
       body: orderData
     }).as('createOrder');
@@ -48,18 +51,18 @@ Cypress.Commands.add('mockCreateOrderApi', () => {
 Cypress.Commands.add('setAuthTokens', () => {
   window.localStorage.setItem('accessToken', 'mock-access-token');
   cy.setCookie('refreshToken', 'mock-refresh-token');
-});
+  });
 
 // Custom command to add ingredient to constructor by drag and drop
 Cypress.Commands.add('addIngredientToConstructor', (ingredientTestId) => {
   cy.get(`[data-testid="${ingredientTestId}"]`).trigger('dragstart');
-  cy.get('[data-testid="burger-constructor"]').trigger('drop');
+  cy.get(SELECTORS.BURGER_CONSTRUCTOR).trigger('drop');
 });
 
 // Custom command to wait for ingredients to load
 Cypress.Commands.add('waitForIngredientsLoad', () => {
   cy.wait('@getIngredients');
-  cy.get('[data-testid="ingredients-list"]').should('be.visible');
+  cy.get(SELECTORS.INGREDIENTS_LIST).should('be.visible');
 });
 
 // Note: TypeScript declarations should be in cypress/support/index.d.ts if needed 
