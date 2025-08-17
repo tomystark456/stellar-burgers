@@ -1,15 +1,25 @@
+import { useSelector, useDispatch } from '../../services/store';
+import { useEffect } from 'react';
+import { fetchFeedOrders } from '../../services/slices/orders-slice';
 import { Preloader } from '@ui';
 import { FeedUI } from '@ui-pages';
-import { TOrder } from '@utils-types';
-import { FC } from 'react';
 
-export const Feed: FC = () => {
-  /** TODO: взять переменную из стора */
-  const orders: TOrder[] = [];
+export const Feed = () => {
+  const dispatch = useDispatch();
+  const { feedOrders, loading } = useSelector((state) => state.orders);
 
-  if (!orders.length) {
+  useEffect(() => {
+    dispatch(fetchFeedOrders());
+  }, [dispatch]);
+
+  if (loading && !feedOrders.length) {
     return <Preloader />;
   }
 
-  <FeedUI orders={orders} handleGetFeeds={() => {}} />;
+  return (
+    <FeedUI
+      orders={feedOrders}
+      handleGetFeeds={() => dispatch(fetchFeedOrders())}
+    />
+  );
 };

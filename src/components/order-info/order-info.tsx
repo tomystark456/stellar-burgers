@@ -1,67 +1,115 @@
-import { FC, useMemo } from 'react';
+import { FC, useMemo, useEffect } from 'react';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { useSelector, useDispatch } from '../../services/store';
+import {
+  fetchOrderByNumber,
+  clearCurrentOrder
+} from '../../services/slices/orders-slice';
+import { fetchIngredients } from '../../services/slices/ingredients-slice';
 import { Preloader } from '../ui/preloader';
 import { OrderInfoUI } from '../ui/order-info';
 import { TIngredient } from '@utils-types';
 
 export const OrderInfo: FC = () => {
-  /** TODO: взять переменные orderData и ingredients из стора */
-  const orderData = {
-    createdAt: '',
-    ingredients: [],
-    _id: '',
-    status: '',
-    name: '',
-    updatedAt: 'string',
-    number: 0
-  };
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { number } = useParams<{ number: string }>();
+  const {
+    currentOrder,
+    loading: orderLoading,
+    error
+  } = useSelector((state) => state.orders);
+  const { ingredients, loading: ingredientsLoading } = useSelector(
+    (state) => state.ingredients
+  );
 
-  const ingredients: TIngredient[] = [];
+  useEffect(() => {
+    if (ingredients.length === 0) {
+      dispatch(fetchIngredients());
+    }
+  }, []); // Убираем все зависимости, чтобы загрузить только один раз
 
-  /* Готовим данные для отображения */
+  useEffect(() => {
+    if (number && (!currentOrder || currentOrder.number !== parseInt(number))) {
+      dispatch(fetchOrderByNumber(parseInt(number)));
+    }
+  }, [number, currentOrder]); // Убираем dispatch из зависимостей
+
+  useEffect(() => {
+    if (error) {
+      dispatch(clearCurrentOrder());
+      if (location.state?.background) {
+        navigate(-1);
+      } else {
+        navigate('/');
+      }
+    }
+  }, [error, navigate, location.state]); // Убираем dispatch из зависимостей
+
   const orderInfo = useMemo(() => {
-    if (!orderData || !ingredients.length) return null;
+    if (!currentOrder || !ingredients.length) return null;
+    if (!currentOrder.ingredients || !Array.isArray(currentOrder.ingredients)) {
+      console.error('Invalid order ingredients:', currentOrder);
+      return null;
+    }
 
-    const date = new Date(orderData.createdAt);
+    const date = new Date(currentOrder.createdAt);
 
     type TIngredientsWithCount = {
       [key: string]: TIngredient & { count: number };
     };
 
-    const ingredientsInfo = orderData.ingredients.reduce(
-      (acc: TIngredientsWithCount, item) => {
-        if (!acc[item]) {
-          const ingredient = ingredients.find((ing) => ing._id === item);
-          if (ingredient) {
-            acc[item] = {
-              ...ingredient,
-              count: 1
-            };
+    try {
+      const ingredientsInfo = currentOrder.ingredients.reduce(
+        (acc: TIngredientsWithCount, item) => {
+          if (!acc[item]) {
+            const ingredient = ingredients.find((ing) => ing._id === item);
+            if (ingredient) {
+              acc[item] = {
+                ...ingredient,
+                count: 1
+              };
+            }
+          } else {
+            acc[item].count++;
           }
-        } else {
-          acc[item].count++;
-        }
+          return acc;
+        },
+        {}
+      );
 
-        return acc;
-      },
-      {}
-    );
+      const total = Object.values(ingredientsInfo).reduce(
+        (acc, item) => acc + item.price * item.count,
+        0
+      );
 
-    const total = Object.values(ingredientsInfo).reduce(
-      (acc, item) => acc + item.price * item.count,
-      0
-    );
+      return {
+        ...currentOrder,
+        ingredientsInfo,
+        date,
+        total
+      };
+    } catch (error) {
+      console.error('Error processing order info:', error);
+      return null;
+    }
+  }, [currentOrder, ingredients]);
 
-    return {
-      ...orderData,
-      ingredientsInfo,
-      date,
-      total
-    };
-  }, [orderData, ingredients]);
-
-  if (!orderInfo) {
+  if (orderLoading || ingredientsLoading) {
     return <Preloader />;
   }
 
-  return <OrderInfoUI orderInfo={orderInfo} />;
+  if (!orderInfo) {
+    return null;
+  }
+
+  return (
+    <>
+      <h2 className='text text_type_digits-default mb-10'>
+        #{String(orderInfo.number).padStart(6, '0')}
+      </h2>
+      <OrderInfoUI orderInfo={orderInfo} />
+    </>
+  );
 };

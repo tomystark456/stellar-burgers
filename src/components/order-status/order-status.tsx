@@ -8,18 +8,15 @@ const statusText: { [key: string]: string } = {
   created: 'Создан'
 };
 
-export const OrderStatus: FC<OrderStatusProps> = ({ status }) => {
-  let textStyle = '';
-  switch (status) {
-    case 'pending':
-      textStyle = '#E52B1A';
-      break;
-    case 'done':
-      textStyle = '#00CCCC';
-      break;
-    default:
-      textStyle = '#F2F2F3';
-  }
+const statusColors: { [key: string]: string } = {
+  pending: '#E52B1A',
+  done: '#00CCCC',
+  created: '#F2F2F3'
+};
 
-  return <OrderStatusUI textStyle={textStyle} text={statusText[textStyle]} />;
+export const OrderStatus: FC<OrderStatusProps> = ({ status }) => {
+  const textStyle = statusColors[status] || '#F2F2F3';
+  const text = statusText[status] || 'Создан';
+
+  return <OrderStatusUI textStyle={textStyle} text={text} />;
 };
