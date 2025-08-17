@@ -94,7 +94,10 @@
     "format": "prettier ./src --write",
     "test": "jest",
     "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage"
+    "test:coverage": "jest --coverage",
+    "cypress:open": "cypress open",
+    "cypress:run": "cypress run",
+    "test:e2e": "npm run cypress:run"
   },
   "jest": {
     "testEnvironment": "jsdom",
@@ -111,8 +114,8 @@
       "\\.(css|less|scss|sass)$": "identity-obj-proxy",
       "@pages(.*)$": "<rootDir>/src/pages$1",
       "@components(.*)$": "<rootDir>/src/components$1",
-      "@ui(.*)$": "<rootDir>/src/components/ui$1",
       "@ui-pages(.*)$": "<rootDir>/src/components/ui/pages$1",
+      "@ui(.*)$": "<rootDir>/src/components/ui$1",
       "@utils-types(.*)$": "<rootDir>/src/utils/types$1",
       "@api(.*)$": "<rootDir>/src/utils/burger-api.ts$1",
       "@slices(.*)$": "<rootDir>/src/services/slices$1",
